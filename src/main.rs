@@ -1,11 +1,12 @@
-extern crate structopt;
 extern crate either;
+extern crate structopt;
 
 use std::io::BufRead;
 use std::io::stdin;
+use std::io::Stdin;
+use std::io::StdinLock;
 
 use either::Either;
-
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -15,8 +16,8 @@ struct Opt {
     #[structopt(short = "d", long = "decode")]
     decode: bool,
 
-    /// Url encode/decode the entire string instead of just the query string
-    #[structopt(short = "a", long = "all")]
+    /// Query encode/decode the entire string
+    #[structopt(short = "q", long = "query")]
     all: bool,
 
     /// Decode + to space or encode space to +
@@ -29,23 +30,28 @@ struct Opt {
 }
 
 #[derive(Debug)]
-struct Input {
-    input_args: Vec<String>
+struct Input<'a> {
+    input_args: Vec<String>,
+    stdin_lock: StdinLock<'a>,
 }
 
-impl Input {
-    fn from(input_arg: Vec<String>) -> Input {
-        Input { input_args: input_arg }
+impl<'a> Input<'a> {
+    fn from(input_args: Vec<String>, stdin_lock: StdinLock<'a>) -> Input {
+        Input {
+            input_args,
+            stdin_lock,
+        }
     }
 
-    fn iterator(self) -> impl Iterator<Item=String> {
+    fn iterator(self) -> impl Iterator<Item=String> + 'a {
         if self.input_args.len() != 0 {
             return Either::Left(self.input_args.into_iter());
         }
-        // I don't like this.
-        let i: Vec<String> = stdin().lock().lines()
-            .map(|line| line.expect("IO error")).collect();
-        Either::Right(i.into_iter())
+        Either::Right(
+            self.stdin_lock.lines()
+                .map(|line| line.expect("IO error"))
+                .into_iter()
+        )
     }
 }
 
@@ -79,7 +85,8 @@ fn get_handler(decode: bool, all: bool) -> fn(&str) -> String {
 
 fn main() {
     let opt = Opt::from_args();
-    let input = Input::from(opt.strings);
+    let i = stdin();
+    let input = Input::from(opt.strings, i.lock());
     let handler = get_handler(opt.decode, opt.all);
     input.iterator().for_each(|a| println!("{}", handler(a.as_str())));
 }
