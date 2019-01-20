@@ -32,14 +32,14 @@ struct Opt {
 #[derive(Debug)]
 struct Input<'a> {
     input_args: Vec<String>,
-    stdin_lock: StdinLock<'a>,
+    stdin: &'a Stdin,
 }
 
 impl<'a> Input<'a> {
-    fn from(input_args: Vec<String>, stdin_lock: StdinLock<'a>) -> Input {
+    fn from(input_args: Vec<String>, stdin: &Stdin) -> Input {
         Input {
             input_args,
-            stdin_lock,
+            stdin,
         }
     }
 
@@ -48,7 +48,7 @@ impl<'a> Input<'a> {
             return Either::Left(self.input_args.into_iter());
         }
         Either::Right(
-            self.stdin_lock.lines()
+            self.stdin.lock().lines()
                 .map(|line| line.expect("IO error"))
                 .into_iter()
         )
@@ -86,7 +86,7 @@ fn get_handler(decode: bool, all: bool) -> fn(&str) -> String {
 fn main() {
     let opt = Opt::from_args();
     let i = stdin();
-    let input = Input::from(opt.strings, i.lock());
+    let input = Input::from(opt.strings, &i);
     let handler = get_handler(opt.decode, opt.all);
     input.iterator().for_each(|a| println!("{}", handler(a.as_str())));
 }
