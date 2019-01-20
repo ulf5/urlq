@@ -19,6 +19,10 @@ struct Opt {
     #[structopt(short = "a", long = "all")]
     all: bool,
 
+    /// Decode + to space or encode space to +
+    #[structopt(short = "p", long = "plus")]
+    plus: bool,
+
     /// Strings to url encode/decode
     #[structopt(raw(multiple = "true"))]
     strings: Vec<String>,
