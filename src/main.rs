@@ -45,8 +45,37 @@ impl Input {
     }
 }
 
+fn all_decoder(string: &str) -> String {
+    String::new()
+}
+
+fn decoder(string: &str) -> String {
+    String::new()
+}
+
+fn all_encoder(string: &str) -> String {
+    String::new()
+}
+
+fn encoder(string: &str) -> String {
+    String::from("Hej")
+}
+
+fn get_handler(decode: bool, all: bool) -> fn(&str) -> String {
+    if decode && all {
+        all_decoder
+    } else if decode {
+        decoder
+    } else if all {
+        all_encoder
+    } else {
+        encoder
+    }
+}
+
 fn main() {
     let opt = Opt::from_args();
     let input = Input::from(opt.strings);
-    input.iterator().for_each(|a| println!("{}", a));
+    let handler = get_handler(opt.decode, opt.all);
+    input.iterator().for_each(|a| println!("{}", handler(a.as_str())));
 }
