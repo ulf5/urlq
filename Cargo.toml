@@ -5,3 +5,4 @@ authors = ["Ulf Åhammar <ulf.ahammar@findwise.com>"]
 edition = "2018"
 
 [dependencies]
+structopt = "0.2"
