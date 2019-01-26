@@ -12,6 +12,7 @@ pub fn decode_plus(url: &str) -> String {
     decode(&url.replace("+", " "))
 }
 
+// TODO: support plus-encoding
 pub fn encode(url: &str) -> String {
     let parsed = Url::parse(url);
     match parsed {
@@ -21,6 +22,7 @@ pub fn encode(url: &str) -> String {
 }
 
 pub fn all_encode(url: &str) -> String {
+    // TODO: Replace with better (correct) encoding set
     percent_encode(url.as_bytes(), PATH_SEGMENT_ENCODE_SET).to_string()
 }
 

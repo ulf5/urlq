@@ -59,6 +59,7 @@ impl<'a> Input<'a> {
     }
 }
 
+// Yuck
 fn get_handler(decode: bool, all: bool, plus: bool) -> fn(&str) -> String {
     if decode && plus {
         urlq::decode_plus
@@ -76,6 +77,7 @@ fn main() {
     let i = stdin();
     let input = Input::from(opt.strings, &i);
     let handler = get_handler(opt.decode, opt.all, opt.plus);
+    // Yuck
     input.iterator()
         .map_or_else(|| println!("Missing input (\"urlq --help\" for help)"),
                      |a|
