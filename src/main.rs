@@ -6,9 +6,9 @@ use std::io::BufRead;
 use std::io::stdin;
 use std::io::Stdin;
 
+use atty::isnt;
 use either::Either;
 use structopt::StructOpt;
-use atty::isnt;
 
 #[derive(StructOpt, Debug)]
 #[structopt(name = "urlq")]
@@ -17,8 +17,8 @@ struct Opt {
     #[structopt(short = "d", long = "decode")]
     decode: bool,
 
-    /// Query encode/decode the entire string
-    #[structopt(short = "q", long = "query")]
+    /// Encode/decode the entire string, e.g. for use as query parameter
+    #[structopt(short = "a", long = "all")]
     all: bool,
 
     /// Decode + to space or encode space to +
@@ -59,24 +59,15 @@ impl<'a> Input<'a> {
     }
 }
 
-
-fn all_encoder(string: &str) -> String {
-    String::new()
-}
-
-fn encoder(string: &str) -> String {
-    String::from("Hej")
-}
-
 fn get_handler(decode: bool, all: bool, plus: bool) -> fn(&str) -> String {
     if decode && plus {
         urlq::decode_plus
     } else if decode {
         urlq::decode
     } else if all {
-        all_encoder
+        urlq::all_encode
     } else {
-        encoder
+        urlq::encode
     }
 }
 
