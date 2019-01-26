@@ -80,6 +80,5 @@ fn main() {
     // Yuck
     input.iterator()
         .map_or_else(|| println!("Missing input (\"urlq --help\" for help)"),
-                     |a|
-                         a.for_each(|b| println!("{}", handler(b.as_str()))));
+                     |a| a.for_each(|b| println!("{}", handler(b.as_str()))));
 }
