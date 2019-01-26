@@ -7,7 +7,7 @@ use std::io::stdin;
 use std::io::Stdin;
 
 use atty::isnt;
-use either::Either;
+use either::Either::{Left, Right};
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -46,14 +46,15 @@ impl<'a> Input<'a> {
 
     fn iterator(self) -> Option<impl Iterator<Item=String> + 'a> {
         if self.input_args.len() != 0 {
-            return Some(Either::Left(self.input_args.into_iter()));
+            return Some(Left(self.input_args.into_iter()));
         }
         if isnt(atty::Stream::Stdin) {
-            return Some(Either::Right(
-                self.stdin.lock().lines()
-                    .map(|line| line.expect("IO error"))
-                    .into_iter()
-            ));
+            return Some(
+                Right(
+                    self.stdin.lock().lines()
+                        .map(|line| line.expect("IO error"))
+                        .into_iter()
+                ));
         }
         None
     }

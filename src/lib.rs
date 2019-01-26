@@ -1,5 +1,6 @@
 use percent_encoding::{percent_decode, percent_encode, PATH_SEGMENT_ENCODE_SET};
 use url::Url;
+use url::percent_encoding::{QUERY_ENCODE_SET, SIMPLE_ENCODE_SET};
 
 pub fn decode(url: &str) -> String {
     percent_decode(url.as_bytes())
@@ -13,6 +14,16 @@ pub fn decode_plus(url: &str) -> String {
 }
 
 // TODO: support plus-encoding
+pub fn encode_plus(url: &str) -> String {
+    let options = Url::options();
+    url::define_encode_set! {
+        pub PLUS_QUERY_ENCODE_SET = [SIMPLE_ENCODE_SET] | { '"', '#', '<', '>'}
+    }
+
+    QUERY_ENCODE_SET = PLUS_QUERY_ENCODE_SET;
+    encode(url).replace(" ", "+")
+}
+
 pub fn encode(url: &str) -> String {
     let parsed = Url::parse(url);
     match parsed {
