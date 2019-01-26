@@ -1,9 +1,11 @@
 [package]
-name = "url"
+name = "urlq"
 version = "0.1.0"
-authors = ["Ulf Åhammar <ulf.ahammar@findwise.com>"]
+authors = ["Ulf Åhammar <ulfahammar@gmail.com>"]
 edition = "2018"
 
 [dependencies]
 structopt = "0.2"
 either = "1.5"
+percent-encoding = "1.0.1"
+atty = "0.2"

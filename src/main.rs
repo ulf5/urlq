@@ -1,16 +1,17 @@
 extern crate either;
 extern crate structopt;
+extern crate urlq;
 
 use std::io::BufRead;
 use std::io::stdin;
 use std::io::Stdin;
-use std::io::StdinLock;
 
 use either::Either;
 use structopt::StructOpt;
+use atty::isnt;
 
 #[derive(StructOpt, Debug)]
-#[structopt(name = "url")]
+#[structopt(name = "urlq")]
 struct Opt {
     /// Url decode instead of encode
     #[structopt(short = "d", long = "decode")]
@@ -43,25 +44,21 @@ impl<'a> Input<'a> {
         }
     }
 
-    fn iterator(self) -> impl Iterator<Item=String> + 'a {
+    fn iterator(self) -> Option<impl Iterator<Item=String> + 'a> {
         if self.input_args.len() != 0 {
-            return Either::Left(self.input_args.into_iter());
+            return Some(Either::Left(self.input_args.into_iter()));
         }
-        Either::Right(
-            self.stdin.lock().lines()
-                .map(|line| line.expect("IO error"))
-                .into_iter()
-        )
+        if isnt(atty::Stream::Stdin) {
+            return Some(Either::Right(
+                self.stdin.lock().lines()
+                    .map(|line| line.expect("IO error"))
+                    .into_iter()
+            ));
+        }
+        None
     }
 }
 
-fn all_decoder(string: &str) -> String {
-    String::new()
-}
-
-fn decoder(string: &str) -> String {
-    String::new()
-}
 
 fn all_encoder(string: &str) -> String {
     String::new()
@@ -71,11 +68,11 @@ fn encoder(string: &str) -> String {
     String::from("Hej")
 }
 
-fn get_handler(decode: bool, all: bool) -> fn(&str) -> String {
-    if decode && all {
-        all_decoder
+fn get_handler(decode: bool, all: bool, plus: bool) -> fn(&str) -> String {
+    if decode && plus {
+        urlq::decode_plus
     } else if decode {
-        decoder
+        urlq::decode
     } else if all {
         all_encoder
     } else {
@@ -87,6 +84,9 @@ fn main() {
     let opt = Opt::from_args();
     let i = stdin();
     let input = Input::from(opt.strings, &i);
-    let handler = get_handler(opt.decode, opt.all);
-    input.iterator().for_each(|a| println!("{}", handler(a.as_str())));
+    let handler = get_handler(opt.decode, opt.all, opt.plus);
+    input.iterator()
+        .map_or_else(|| println!("Missing input (\"urlq --help\" for help)"),
+                     |a|
+                         a.for_each(|b| println!("{}", handler(b.as_str()))));
 }
