@@ -42,9 +42,7 @@ fn handle_query_and_fragment(query_and_fragment: &str) -> String {
     let query = parts.next().expect("Malformed");
     let fragment = parts.next();
 
-    let mut encoded_query = percent_encode(query.as_bytes(), PLUS_QUERY_ENCODE_SET)
-        .to_string()
-        .replace(' ', "+");
+    let mut encoded_query = encode_query_plus(query);
     match fragment {
         Some(fragment) => {
             encoded_query.push_str(&percent_encode(fragment.as_bytes(), SIMPLE_ENCODE_SET).to_string());
@@ -52,6 +50,26 @@ fn handle_query_and_fragment(query_and_fragment: &str) -> String {
         }
         None => return encoded_query
     }
+}
+
+pub fn encode_query_plus(query: &str) -> String {
+    percent_encode(query.as_bytes(), PLUS_QUERY_ENCODE_SET)
+        .to_string()
+        .replace(' ', "+")
+}
+
+define_encode_set! {
+    /// This encode set is used in the URL parser for query strings.
+    ///
+    /// Aside from special chacters defined in the [`SIMPLE_ENCODE_SET`](struct.SIMPLE_ENCODE_SET.html),
+    /// space, double quote ("), hash (#), and inequality qualifiers (<), (>) are encoded.
+    pub PLUS_QUERY_ENCODE_SET = [SIMPLE_ENCODE_SET] | {'"', '#', '<', '>'}
+}
+
+pub fn all_encode_plus(url: &str) -> String {
+    percent_encode(url.as_bytes(), PLUS_QUERY_ENCODE_SET)
+        .to_string()
+        .replace(' ', "+")
 }
 
 pub fn encode_url(url: &str) -> String {
