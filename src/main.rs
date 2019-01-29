@@ -68,8 +68,10 @@ fn get_handler(decode: bool, all: bool, plus: bool) -> fn(&str) -> String {
         urlq::decode
     } else if all {
         urlq::all_encode
+    } else if plus {
+        urlq::encode_plus_url
     } else {
-        urlq::encode
+        urlq::encode_url
     }
 }
 
