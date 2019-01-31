@@ -1,7 +1,7 @@
 use crate::urlq::encode_sets::{PLUS_QUERY_ENCODE_SET, ALL_ENCODE_SET};
 use percent_encoding::percent_encode;
 use url::Url;
-use url::percent_encoding::SIMPLE_ENCODE_SET;
+use url::percent_encoding::{SIMPLE_ENCODE_SET, PATH_SEGMENT_ENCODE_SET, QUERY_ENCODE_SET, DEFAULT_ENCODE_SET, USERINFO_ENCODE_SET};
 use percent_encoding::EncodeSet;
 
 pub fn encode_url(url: &str) -> String {
@@ -12,7 +12,7 @@ pub fn encode_url(url: &str) -> String {
 
 pub fn encode_url_plus(url: &str) -> String {
     let mut parts = url.splitn(2, "?");
-    let first = parts.next().expect("malformed");
+    let first = parts.next().expect("Malformed");
     let second = parts.next();
     match second {
         Some(part) => {
@@ -39,12 +39,32 @@ fn handle_query_and_fragment_plus(query_and_fragment: &str) -> String {
     }
 }
 
+pub fn encode_query(query: &str) -> String {
+    encode(query, QUERY_ENCODE_SET)
+}
+
 pub fn encode_query_plus(query: &str) -> String {
     encode(query, PLUS_QUERY_ENCODE_SET).replace(' ', "+")
 }
 
-pub fn all_encode(url: &str) -> String {
-    encode(url, ALL_ENCODE_SET)
+pub fn encode_path(path: &str) -> String {
+    encode(path, DEFAULT_ENCODE_SET)
+}
+
+pub fn encode_path_segment(path_segment: &str) -> String {
+    encode(path_segment, PATH_SEGMENT_ENCODE_SET)
+}
+
+pub fn encode_userinfo(userinfo: &str) -> String {
+    encode(userinfo, USERINFO_ENCODE_SET)
+}
+
+pub fn encode_fragment(fragment: &str) -> String {
+    encode(fragment, SIMPLE_ENCODE_SET)
+}
+
+pub fn encode_all_reserved(string: &str) -> String {
+    encode(string, ALL_ENCODE_SET)
 }
 
 fn encode(string: &str, encode_set: impl EncodeSet) -> String {

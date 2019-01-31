@@ -10,19 +10,103 @@ use atty::isnt;
 use either::Either::{Left, Right};
 use structopt::StructOpt;
 
+
 #[derive(StructOpt, Debug)]
 #[structopt(name = "urlq")]
 struct Opt {
     /// Url decode instead of encode
-    #[structopt(short = "d", long = "decode")]
+    #[structopt(
+    short = "d",
+    long = "decode",
+    conflicts_with = "url",
+    conflicts_with = "path",
+    conflicts_with = "path-segment",
+    conflicts_with = "query",
+    conflicts_with = "userinfo",
+    conflicts_with = "all"
+    )]
     decode: bool,
 
-    /// Encode/decode the entire string, e.g. for use as query parameter
-    #[structopt(short = "a", long = "all")]
-    all: bool,
+    /// Try to parse the string as an url and encode each part appropriately
+    #[structopt(
+    short = "u",
+    long = "url",
+    conflicts_with = "decode",
+    conflicts_with = "path",
+    conflicts_with = "path-segment",
+    conflicts_with = "query",
+    conflicts_with = "userinfo",
+    conflicts_with = "all"
+    )]
+    url: bool,
+
+    #[structopt(
+    short = "p",
+    long = "path",
+    conflicts_with = "decode",
+    conflicts_with = "url",
+    conflicts_with = "path-segment",
+    conflicts_with = "query",
+    conflicts_with = "userinfo",
+    conflicts_with = "all",
+    conflicts_with = "plus"
+    )]
+    path: bool,
+
+    #[structopt(
+    short = "s",
+    long = "path-segment",
+    conflicts_with = "decode",
+    conflicts_with = "url",
+    conflicts_with = "path",
+    conflicts_with = "query",
+    conflicts_with = "userinfo",
+    conflicts_with = "all",
+    conflicts_with = "plus"
+    )]
+    path_segment: bool,
+
+    #[structopt(
+    short = "q",
+    long = "query",
+    conflicts_with = "decode",
+    conflicts_with = "url",
+    conflicts_with = "path",
+    conflicts_with = "path-segment",
+    conflicts_with = "userinfo",
+    conflicts_with = "all"
+    )]
+    query: bool,
+
+    #[structopt(
+    short = "i",
+    long = "userinfo",
+    conflicts_with = "decode",
+    conflicts_with = "url",
+    conflicts_with = "path",
+    conflicts_with = "path-segment",
+    conflicts_with = "query",
+    conflicts_with = "all",
+    conflicts_with = "plus"
+    )]
+    userinfo: bool,
+
+    /*    #[structopt(
+        short = "a",
+        long = "all",
+        conflicts_with = "decode",
+        conflicts_with = "url",
+        conflicts_with = "path",
+        conflicts_with = "path-segment",
+        conflicts_with = "query",
+        conflicts_with = "userinfo",
+        conflicts_with = "plus"
+        )]
+        all: bool,*/
+    //TODO ADD FRAGMENT AND DOCUMENTATION
 
     /// Decode + to space or encode space to +
-    #[structopt(short = "p", long = "plus")]
+    #[structopt(short = "+", long = "plus")]
     plus: bool,
 
     /// Strings to url encode/decode
@@ -60,26 +144,43 @@ impl<'a> Input<'a> {
     }
 }
 
-// Yuck
-fn get_handler(decode: bool, all: bool, plus: bool) -> fn(&str) -> String {
-    if decode && plus {
-        urlq::decode_plus
-    } else if decode {
-        urlq::decode
-    } else if all && !plus {
-        urlq::all_encode
-    } else if plus {
-        urlq::encode_url_plus
-    } else {
-        urlq::encode_url
+fn get_handler(opt: &Opt) -> fn(&str) -> String {
+    if opt.decode {
+        match opt.plus {
+            true => return urlq::decode_plus,
+            false => return urlq::decode
+        }
     }
+    if opt.url {
+        match opt.plus {
+            true => return urlq::encode_url_plus,
+            false => return urlq::encode_url
+        }
+    }
+    if opt.query {
+        match opt.plus {
+            true => return urlq::encode_query_plus,
+            false => return urlq::encode_query
+        }
+    }
+    if opt.path {
+        return urlq::encode_path;
+    }
+    if opt.path_segment {
+        return urlq::encode_path_segment;
+    }
+    if opt.userinfo {
+        return urlq::encode_userinfo;
+    }
+    urlq::encode_all_reserved
 }
 
 fn main() {
     let opt = Opt::from_args();
+    let handler = get_handler(&opt);
     let i = stdin();
     let input = Input::from(opt.strings, &i);
-    let handler = get_handler(opt.decode, opt.all, opt.plus);
+
     // Yuck
     input.iterator()
         .map_or_else(|| println!("Missing input (\"urlq --help\" for help)"),
