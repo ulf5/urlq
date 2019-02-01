@@ -14,7 +14,7 @@ use structopt::StructOpt;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "urlq")]
 struct Opt {
-    /// Url decode instead of encode
+    /// Percent decode instead of encode
     #[structopt(
     short = "d",
     long = "decode",
@@ -23,7 +23,7 @@ struct Opt {
     conflicts_with = "path-segment",
     conflicts_with = "query",
     conflicts_with = "userinfo",
-    conflicts_with = "all"
+    conflicts_with = "fragment"
     )]
     decode: bool,
 
@@ -36,10 +36,11 @@ struct Opt {
     conflicts_with = "path-segment",
     conflicts_with = "query",
     conflicts_with = "userinfo",
-    conflicts_with = "all"
+    conflicts_with = "fragment"
     )]
     url: bool,
 
+    /// Encode the input as the path part of a URI
     #[structopt(
     short = "p",
     long = "path",
@@ -48,11 +49,12 @@ struct Opt {
     conflicts_with = "path-segment",
     conflicts_with = "query",
     conflicts_with = "userinfo",
-    conflicts_with = "all",
+    conflicts_with = "fragment",
     conflicts_with = "plus"
     )]
     path: bool,
 
+    /// Encode the input as a path segment part of a URI
     #[structopt(
     short = "s",
     long = "path-segment",
@@ -61,11 +63,12 @@ struct Opt {
     conflicts_with = "path",
     conflicts_with = "query",
     conflicts_with = "userinfo",
-    conflicts_with = "all",
+    conflicts_with = "fragment",
     conflicts_with = "plus"
     )]
     path_segment: bool,
 
+    /// Encode the input as the query part of a URI
     #[structopt(
     short = "q",
     long = "query",
@@ -74,10 +77,11 @@ struct Opt {
     conflicts_with = "path",
     conflicts_with = "path-segment",
     conflicts_with = "userinfo",
-    conflicts_with = "all"
+    conflicts_with = "fragment"
     )]
     query: bool,
 
+    /// Encode the input as the userinfo part of a URI
     #[structopt(
     short = "i",
     long = "userinfo",
@@ -86,24 +90,24 @@ struct Opt {
     conflicts_with = "path",
     conflicts_with = "path-segment",
     conflicts_with = "query",
-    conflicts_with = "all",
+    conflicts_with = "fragment",
     conflicts_with = "plus"
     )]
     userinfo: bool,
 
-    /*    #[structopt(
-        short = "a",
-        long = "all",
-        conflicts_with = "decode",
-        conflicts_with = "url",
-        conflicts_with = "path",
-        conflicts_with = "path-segment",
-        conflicts_with = "query",
-        conflicts_with = "userinfo",
-        conflicts_with = "plus"
-        )]
-        all: bool,*/
-    //TODO ADD FRAGMENT AND DOCUMENTATION
+    /// Encode the input as the fragment part of a URI
+    #[structopt(
+    short = "f",
+    long = "fragment",
+    conflicts_with = "decode",
+    conflicts_with = "url",
+    conflicts_with = "path",
+    conflicts_with = "path-segment",
+    conflicts_with = "query",
+    conflicts_with = "userinfo",
+    conflicts_with = "plus"
+    )]
+    fragment: bool,
 
     /// Decode + to space or encode space to +
     #[structopt(short = "+", long = "plus")]
@@ -172,6 +176,9 @@ fn get_handler(opt: &Opt) -> fn(&str) -> String {
     if opt.userinfo {
         return urlq::encode_userinfo;
     }
+    if opt.fragment {
+        return urlq::encode_fragment;
+    }
     urlq::encode_all_reserved
 }
 
@@ -185,4 +192,6 @@ fn main() {
     input.iterator()
         .map_or_else(|| println!("Missing input (\"urlq --help\" for help)"),
                      |a| a.for_each(|b| println!("{}", handler(b.as_str()))));
+    use url::Url;
+    println!("{}", Url::parse("http://google.com/?q=rust+url github").expect("").as_str());
 }

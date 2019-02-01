@@ -70,3 +70,26 @@ pub fn encode_all_reserved(string: &str) -> String {
 fn encode(string: &str, encode_set: impl EncodeSet) -> String {
     percent_encode(string.as_bytes(), encode_set).to_string()
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{encode_query, encode_query_plus};
+
+    #[test]
+    fn test_encode_query_plus() {
+        assert_eq!(encode_query_plus("~/abc def"), "~/abc+def");
+        assert_eq!(encode_query_plus("#20/abc def"), "%2320/abc+def");
+        assert_eq!(encode_query_plus("?20/abc def"), "?20/abc+def");
+        assert_eq!(encode_query_plus(" + "), "+%2B+");
+        assert_eq!(encode_query_plus(""), "");
+    }
+
+    #[test]
+    fn test_encode_query() {
+        assert_eq!(encode_query("~/abc def"), "~/abc%20def");
+        assert_eq!(encode_query("#20/abc def"), "%2320/abc%20def");
+        assert_eq!(encode_query("?20/abc def"), "?20/abc%20def");
+        assert_eq!(encode_query(" + "), "%20+%20");
+        assert_eq!(encode_query(""), "");
+    }
+}

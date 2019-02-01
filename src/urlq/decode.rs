@@ -14,9 +14,21 @@ pub fn decode_plus(url: &str) -> String {
 #[cfg(test)]
 mod tests {
     use crate::decode_plus;
+    use crate::decode;
 
     #[test]
-    fn plus_decode() {
+    fn test_decode_plus() {
         assert_eq!(decode_plus("%7e/abc+def"), "~/abc def");
+        assert_eq!(decode_plus("%7e/abc%20def"), "~/abc def");
+        assert_eq!(decode_plus("+%2B+"), " + ");
+        assert_eq!(decode_plus(""), "");
+    }
+
+    #[test]
+    fn test_decode() {
+        assert_eq!(decode("%7e/abc+def"), "~/abc+def");
+        assert_eq!(decode("%7e/abc%20def"), "~/abc def");
+        assert_eq!(decode("+%2B+"), "+++");
+        assert_eq!(decode(""), "");
     }
 }
