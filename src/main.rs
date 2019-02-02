@@ -133,7 +133,7 @@ impl<'a> Input<'a> {
     }
 
     fn iterator(self) -> Option<impl Iterator<Item=String> + 'a> {
-        if self.input_args.len() != 0 {
+        if !self.input_args.is_empty() {
             return Some(Left(self.input_args.into_iter()));
         }
         if isnt(atty::Stream::Stdin) {
@@ -141,7 +141,6 @@ impl<'a> Input<'a> {
                 Right(
                     self.stdin.lock().lines()
                         .map(|line| line.expect("IO error"))
-                        .into_iter()
                 ));
         }
         None
@@ -150,21 +149,24 @@ impl<'a> Input<'a> {
 
 fn get_handler(opt: &Opt) -> fn(&str) -> String {
     if opt.decode {
-        match opt.plus {
-            true => return urlq::decode_plus,
-            false => return urlq::decode
+        if opt.plus {
+            return urlq::decode_plus;
+        } else {
+            return urlq::decode;
         }
     }
     if opt.url {
-        match opt.plus {
-            true => return urlq::encode_url_plus,
-            false => return urlq::encode_url
+        if opt.plus {
+            return urlq::encode_url_plus;
+        } else {
+            return urlq::encode_url;
         }
     }
     if opt.query {
-        match opt.plus {
-            true => return urlq::encode_query_plus,
-            false => return urlq::encode_query
+        if opt.plus {
+            return urlq::encode_query_plus;
+        } else {
+            return urlq::encode_query;
         }
     }
     if opt.path {
@@ -192,6 +194,4 @@ fn main() {
     input.iterator()
         .map_or_else(|| println!("Missing input (\"urlq --help\" for help)"),
                      |a| a.for_each(|b| println!("{}", handler(b.as_str()))));
-    use url::Url;
-    println!("{}", Url::parse("http://google.com/?q=rust+url github").expect("").as_str());
 }

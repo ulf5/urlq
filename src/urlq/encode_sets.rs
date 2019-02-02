@@ -12,6 +12,7 @@ define_encode_set! {
 
 define_encode_set! {
     /// This encode set is used for encoding all characters that are reserved in any part of a URI.
-    pub ALL_ENCODE_SET =  [SIMPLE_ENCODE_SET] | {':', '/', '?', '#', '[', ']', '@', '!', '$', '&','\'', '`', '(', ')', '*', '+', ',', ';', '=', ' '}
+    /// Also encodes plus (+) and percent (%)
+    pub ALL_ENCODE_SET =  [SIMPLE_ENCODE_SET] | {':', '/', '?', '#', '[', ']', '@', '!', '$', '&','\'', '`', '(', ')', '*', '+', ',', ';', '=', ' ', '%'}
 }
 

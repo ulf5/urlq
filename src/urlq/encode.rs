@@ -73,7 +73,7 @@ fn encode(string: &str, encode_set: impl EncodeSet) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{encode_query, encode_query_plus};
+    use crate::{encode_query, encode_query_plus, encode_url, encode_url_plus};
 
     #[test]
     fn test_encode_query_plus() {
@@ -91,5 +91,14 @@ mod tests {
         assert_eq!(encode_query("?20/abc def"), "?20/abc%20def");
         assert_eq!(encode_query(" + "), "%20+%20");
         assert_eq!(encode_query(""), "");
+    }
+
+    #[test]
+    fn test_encode_url() {
+        assert_eq!(encode_url("http://www.example.com/~/abc def"), "http://www.example.com/~/abc%20def");
+        //assert_eq!(encode_url("#20/abc def"), "%2320/abc%20def");
+        //assert_eq!(encode_url("?20/abc def"), "?20/abc%20def");
+        //assert_eq!(encode_url(" + "), "%20+%20");
+        //assert_eq!(encode_url(""), "");
     }
 }
