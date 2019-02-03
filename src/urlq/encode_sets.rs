@@ -6,8 +6,8 @@ define_encode_set! {
     /// Space is not encoded and can be replaced with plus (+) after encoding.
     ///
     /// Aside from special chacters defined in the [`SIMPLE_ENCODE_SET`](struct.SIMPLE_ENCODE_SET.html),
-    /// double quote ("), plus (+), hash (#), and inequality qualifiers (<), (>) are encoded.
-    pub PLUS_QUERY_ENCODE_SET = [SIMPLE_ENCODE_SET] | {'"', '#', '<', '>', '+'}
+    /// double quote ("), plus (+), percent (%), hash (#), and inequality qualifiers (<), (>) are encoded.
+    pub PLUS_QUERY_ENCODE_SET = [SIMPLE_ENCODE_SET] | {'"', '#', '<', '>', '+', '%'}
 }
 
 define_encode_set! {

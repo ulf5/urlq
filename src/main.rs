@@ -147,6 +147,14 @@ impl<'a> Input<'a> {
     }
 }
 
+fn encode_url_plus(url: &str) -> String {
+    urlq::encode_url_plus(url).unwrap_or(format!("Failed to parse \"{}\" as url", url))
+}
+
+fn encode_url(url: &str) -> String {
+    urlq::encode_url(url).unwrap_or(format!("Failed to parse \"{}\" as url", url))
+}
+
 fn get_handler(opt: &Opt) -> fn(&str) -> String {
     if opt.decode {
         if opt.plus {
@@ -157,9 +165,9 @@ fn get_handler(opt: &Opt) -> fn(&str) -> String {
     }
     if opt.url {
         if opt.plus {
-            return urlq::encode_url_plus;
+            return encode_url_plus;
         } else {
-            return urlq::encode_url;
+            return encode_url;
         }
     }
     if opt.query {
