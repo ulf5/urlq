@@ -118,6 +118,7 @@ struct Opt {
     #[structopt(
     short = "e",
     long = "encode-set",
+    default_value = "",
     conflicts_with = "decode",
     conflicts_with = "url",
     conflicts_with = "path",
