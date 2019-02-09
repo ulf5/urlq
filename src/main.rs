@@ -2,6 +2,7 @@ extern crate either;
 extern crate structopt;
 extern crate urlq;
 
+
 use std::io::BufRead;
 use std::io::stdin;
 use std::io::Stdin;
@@ -27,7 +28,7 @@ struct Opt {
     )]
     decode: bool,
 
-    /// Try to parse the string as an url and encode each part appropriately
+    /// Try to parse the string as an url
     #[structopt(
     short = "u",
     long = "url",
@@ -113,6 +114,21 @@ struct Opt {
     #[structopt(short = "+", long = "plus")]
     plus: bool,
 
+    /// Only encode these specific characters
+    #[structopt(
+    short = "e",
+    long = "encode-set",
+    conflicts_with = "decode",
+    conflicts_with = "url",
+    conflicts_with = "path",
+    conflicts_with = "path-segment",
+    conflicts_with = "query",
+    conflicts_with = "userinfo",
+    conflicts_with = "fragment",
+    conflicts_with = "plus"
+    )]
+    encode_set: String,
+
     /// Strings to url encode/decode
     #[structopt(raw(multiple = "true"))]
     strings: Vec<String>,
@@ -135,15 +151,14 @@ impl<'a> Input<'a> {
     fn iterator(self) -> Option<impl Iterator<Item=String> + 'a> {
         if !self.input_args.is_empty() {
             return Some(Left(self.input_args.into_iter()));
+        } else if isnt(atty::Stream::Stdin) {
+            return Some(Right(
+                self.stdin.lock().lines()
+                    .map(|line| line.expect("IO error"))
+            ));
+        } else {
+            return None;
         }
-        if isnt(atty::Stream::Stdin) {
-            return Some(
-                Right(
-                    self.stdin.lock().lines()
-                        .map(|line| line.expect("IO error"))
-                ));
-        }
-        None
     }
 }
 
@@ -155,41 +170,72 @@ fn encode_url(url: &str) -> String {
     urlq::encode_url(url).unwrap_or(format!("Failed to parse \"{}\" as url", url))
 }
 
-fn get_handler(opt: &Opt) -> fn(&str) -> String {
+trait Handler {
+    fn handle(&self, string: &str) -> String;
+}
+
+struct SimpleHandler {
+    function: fn(&str) -> String
+}
+
+impl Handler for SimpleHandler {
+    fn handle(&self, string: &str) -> String {
+        (self.function)(string)
+    }
+}
+
+struct CustomHandler {
+    function: fn(&str, &str) -> String,
+    string: String,
+}
+
+impl Handler for CustomHandler {
+    fn handle(&self, string: &str) -> String {
+        (self.function)(string, &self.string)
+    }
+}
+
+fn get_handler(opt: &Opt) -> Box<Handler> {
     if opt.decode {
         if opt.plus {
-            return urlq::decode_plus;
+            return Box::new(SimpleHandler { function: urlq::decode_plus });
         } else {
-            return urlq::decode;
+            return Box::new(SimpleHandler { function: urlq::decode });
         }
     }
     if opt.url {
         if opt.plus {
-            return encode_url_plus;
+            return Box::new(SimpleHandler { function: encode_url_plus });
         } else {
-            return encode_url;
+            return Box::new(SimpleHandler { function: encode_url });
         }
     }
     if opt.query {
         if opt.plus {
-            return urlq::encode_query_plus;
+            return Box::new(SimpleHandler { function: urlq::encode_query_plus });
         } else {
-            return urlq::encode_query;
+            return Box::new(SimpleHandler { function: urlq::encode_query });
         }
     }
+    if !opt.encode_set.is_empty() {
+        return Box::new(CustomHandler {
+            function: urlq::encode_characters,
+            string: opt.encode_set.to_string(),
+        });
+    }
     if opt.path {
-        return urlq::encode_path;
+        return Box::new(SimpleHandler { function: urlq::encode_path });
     }
     if opt.path_segment {
-        return urlq::encode_path_segment;
+        return Box::new(SimpleHandler { function: urlq::encode_path_segment });
     }
     if opt.userinfo {
-        return urlq::encode_userinfo;
+        return Box::new(SimpleHandler { function: urlq::encode_userinfo });
     }
     if opt.fragment {
-        return urlq::encode_fragment;
+        return Box::new(SimpleHandler { function: urlq::encode_fragment });
     }
-    urlq::encode_all_reserved
+    Box::new(SimpleHandler { function: urlq::encode_all_reserved })
 }
 
 fn main() {
@@ -198,8 +244,9 @@ fn main() {
     let i = stdin();
     let input = Input::from(opt.strings, &i);
 
+    //println!("{}", opt.encode_set);
     // Yuck
     input.iterator()
         .map_or_else(|| println!("Missing input (\"urlq --help\" for help)"),
-                     |a| a.for_each(|b| println!("{}", handler(b.as_str()))));
+                     |a| a.for_each(|b| println!("{}", handler.handle(b.as_str()))));
 }
