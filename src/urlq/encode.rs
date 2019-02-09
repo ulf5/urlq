@@ -1,10 +1,12 @@
-use crate::urlq::encode_sets::{PLUS_QUERY_ENCODE_SET, ALL_ENCODE_SET};
+use crate::urlq::encode_sets::{PLUS_QUERY_ENCODE_SET, ALL_RESERVED_ENCODE_SET, ALL_RESERVED_PLUS_ENCODE_SET};
 use percent_encoding::percent_encode;
 use url::Url;
 use url::percent_encoding::{SIMPLE_ENCODE_SET, PATH_SEGMENT_ENCODE_SET, QUERY_ENCODE_SET, DEFAULT_ENCODE_SET, USERINFO_ENCODE_SET};
 use percent_encoding::EncodeSet;
 use url::ParseError;
 use crate::urlq::encode_sets::CustomEncodeSet;
+use crate::urlq::encode_sets::AllCharactersEncodeSet;
+use crate::urlq::encode_sets::AllCharactersExceptSpaceEncodeSet;
 
 pub fn encode_url(url: &str) -> Result<String, ParseError> {
     Url::parse(url)
@@ -68,7 +70,19 @@ pub fn encode_fragment(fragment: &str) -> String {
 }
 
 pub fn encode_all_reserved(string: &str) -> String {
-    encode(string, ALL_ENCODE_SET)
+    encode(string, ALL_RESERVED_ENCODE_SET)
+}
+
+pub fn encode_all_reserved_plus(string: &str) -> String {
+    encode(string, ALL_RESERVED_PLUS_ENCODE_SET)
+}
+
+pub fn encode_all(string: &str) -> String {
+    encode(string, AllCharactersEncodeSet::new())
+}
+
+pub fn encode_all_plus(string: &str) -> String {
+    encode(string, AllCharactersExceptSpaceEncodeSet::new()).replace(' ', "+")
 }
 
 pub fn encode_characters(string: &str, chars_to_encode: &str) -> String {

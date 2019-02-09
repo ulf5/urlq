@@ -13,7 +13,13 @@ define_encode_set! {
 define_encode_set! {
     /// This encode set is used for encoding all characters that are reserved in any part of a URI.
     /// Also encodes plus (+) and percent (%)
-    pub ALL_ENCODE_SET =  [SIMPLE_ENCODE_SET] | {':', '/', '?', '#', '[', ']', '@', '!', '$', '&','\'', '`', '(', ')', '*', '+', ',', ';', '=', ' ', '%'}
+    pub ALL_RESERVED_ENCODE_SET =  [SIMPLE_ENCODE_SET] | {':', '/', '?', '#', '[', ']', '@', '!', '$', '&','\'', '`', '(', ')', '*', '+', ',', ';', '=', ' ', '%'}
+}
+
+define_encode_set! {
+    /// This encode set is used for encoding all characters that are reserved in any part of a URI, except space ' '
+    /// Also encodes percent (%)
+    pub ALL_RESERVED_PLUS_ENCODE_SET =  [SIMPLE_ENCODE_SET] | {':', '/', '?', '#', '[', ']', '@', '!', '$', '&','\'', '`', '(', ')', '*', '+', ',', ';', '=', '%'}
 }
 
 #[derive(Clone)]
@@ -32,5 +38,36 @@ impl CustomEncodeSet {
 impl EncodeSet for CustomEncodeSet {
     fn contains(&self, byte: u8) -> bool {
         self.chars.contains(&byte)
+    }
+}
+
+
+#[derive(Clone)]
+pub struct AllCharactersEncodeSet {}
+
+impl AllCharactersEncodeSet {
+    pub fn new() -> AllCharactersEncodeSet {
+        AllCharactersEncodeSet {}
+    }
+}
+
+impl EncodeSet for AllCharactersEncodeSet {
+    fn contains(&self, _: u8) -> bool {
+        true
+    }
+}
+
+#[derive(Clone)]
+pub struct AllCharactersExceptSpaceEncodeSet {}
+
+impl AllCharactersExceptSpaceEncodeSet {
+    pub fn new() -> AllCharactersExceptSpaceEncodeSet {
+        AllCharactersExceptSpaceEncodeSet {}
+    }
+}
+
+impl EncodeSet for AllCharactersExceptSpaceEncodeSet {
+    fn contains(&self, byte: u8) -> bool {
+        byte != ' ' as u8
     }
 }

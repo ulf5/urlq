@@ -24,7 +24,8 @@ struct Opt {
     conflicts_with = "path-segment",
     conflicts_with = "query",
     conflicts_with = "userinfo",
-    conflicts_with = "fragment"
+    conflicts_with = "fragment",
+    conflicts_with = "all"
     )]
     decode: bool,
 
@@ -37,7 +38,8 @@ struct Opt {
     conflicts_with = "path-segment",
     conflicts_with = "query",
     conflicts_with = "userinfo",
-    conflicts_with = "fragment"
+    conflicts_with = "fragment",
+    conflicts_with = "all"
     )]
     url: bool,
 
@@ -51,6 +53,7 @@ struct Opt {
     conflicts_with = "query",
     conflicts_with = "userinfo",
     conflicts_with = "fragment",
+    conflicts_with = "all",
     conflicts_with = "plus"
     )]
     path: bool,
@@ -65,6 +68,7 @@ struct Opt {
     conflicts_with = "query",
     conflicts_with = "userinfo",
     conflicts_with = "fragment",
+    conflicts_with = "all",
     conflicts_with = "plus"
     )]
     path_segment: bool,
@@ -78,7 +82,8 @@ struct Opt {
     conflicts_with = "path",
     conflicts_with = "path-segment",
     conflicts_with = "userinfo",
-    conflicts_with = "fragment"
+    conflicts_with = "fragment",
+    conflicts_with = "all"
     )]
     query: bool,
 
@@ -92,6 +97,7 @@ struct Opt {
     conflicts_with = "path-segment",
     conflicts_with = "query",
     conflicts_with = "fragment",
+    conflicts_with = "all",
     conflicts_with = "plus"
     )]
     userinfo: bool,
@@ -106,9 +112,24 @@ struct Opt {
     conflicts_with = "path-segment",
     conflicts_with = "query",
     conflicts_with = "userinfo",
-    conflicts_with = "plus"
+    conflicts_with = "plus",
+    conflicts_with = "all"
     )]
     fragment: bool,
+
+    /// Encode all characters of the input
+    #[structopt(
+    short = "a",
+    long = "all-characters",
+    conflicts_with = "decode",
+    conflicts_with = "url",
+    conflicts_with = "path",
+    conflicts_with = "path-segment",
+    conflicts_with = "query",
+    conflicts_with = "userinfo",
+    conflicts_with = "fragment"
+    )]
+    all: bool,
 
     /// Decode + to space or encode space to +
     #[structopt(short = "+", long = "plus")]
@@ -126,6 +147,7 @@ struct Opt {
     conflicts_with = "query",
     conflicts_with = "userinfo",
     conflicts_with = "fragment",
+    conflicts_with = "all",
     conflicts_with = "plus"
     )]
     encode_set: String,
@@ -218,6 +240,13 @@ fn get_handler(opt: &Opt) -> Box<Handler> {
             return Box::new(SimpleHandler { function: urlq::encode_query });
         }
     }
+    if opt.all {
+        if opt.plus {
+            return Box::new(SimpleHandler { function: urlq::encode_all_plus});
+        } else {
+            return Box::new(SimpleHandler { function: urlq::encode_all});
+        }
+    }
     if !opt.encode_set.is_empty() {
         return Box::new(CustomHandler {
             function: urlq::encode_characters,
@@ -236,6 +265,9 @@ fn get_handler(opt: &Opt) -> Box<Handler> {
     if opt.fragment {
         return Box::new(SimpleHandler { function: urlq::encode_fragment });
     }
+    if opt.plus {
+        return Box::new(SimpleHandler { function: urlq::encode_all_reserved_plus });
+    }
     Box::new(SimpleHandler { function: urlq::encode_all_reserved })
 }
 
@@ -245,7 +277,6 @@ fn main() {
     let i = stdin();
     let input = Input::from(opt.strings, &i);
 
-    //println!("{}", opt.encode_set);
     // Yuck
     input.iterator()
         .map_or_else(|| println!("Missing input (\"urlq --help\" for help)"),
