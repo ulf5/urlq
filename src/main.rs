@@ -139,7 +139,6 @@ struct Opt {
     #[structopt(
     short = "e",
     long = "encode-set",
-    default_value = "",
     conflicts_with = "decode",
     conflicts_with = "url",
     conflicts_with = "path",
@@ -150,7 +149,7 @@ struct Opt {
     conflicts_with = "all",
     conflicts_with = "plus"
     )]
-    encode_set: String,
+    encode_set: Option<String>,
 
     /// Strings to url encode/decode
     #[structopt(raw(multiple = "true"))]
@@ -247,10 +246,11 @@ fn get_handler(opt: &Opt) -> Box<Handler> {
             return Box::new(SimpleHandler { function: urlq::encode_all});
         }
     }
-    if !opt.encode_set.is_empty() {
+    if opt.encode_set.is_some() {
+        let encode_set = opt.encode_set.as_ref().unwrap();
         return Box::new(CustomHandler {
             function: urlq::encode_characters,
-            string: opt.encode_set.to_string(),
+            string: encode_set.to_string(),
         });
     }
     if opt.path {
