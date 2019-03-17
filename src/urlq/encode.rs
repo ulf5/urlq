@@ -125,5 +125,6 @@ mod tests {
     #[test]
     fn test_encode_all_reserved() {
         assert_eq!(encode_all_reserved("?20/abc def"), "%3F20%2Fabc%20def");
+        assert_eq!(encode_all_reserved(":/?#[]@!$&,'`()*+,;= %"), "%3A%2F%3F%23%5B%5D%40%21%24%26%2C%27%60%28%29%2A%2B%2C%3B%3D%20%25");
     }
 }
