@@ -172,24 +172,24 @@ impl<'a> Input<'a> {
 
     fn iterator(self) -> Option<impl Iterator<Item=String> + 'a> {
         if !self.input_args.is_empty() {
-            return Some(Left(self.input_args.into_iter()));
+            Some(Left(self.input_args.into_iter()))
         } else if isnt(atty::Stream::Stdin) {
-            return Some(Right(
+            Some(Right(
                 self.stdin.lock().lines()
                     .map(|line| line.expect("IO error"))
-            ));
+            ))
         } else {
-            return None;
+            None
         }
     }
 }
 
 fn encode_url_plus(url: &str) -> String {
-    urlq::encode_url_plus(url).unwrap_or(format!("Failed to parse \"{}\" as url", url))
+    urlq::encode_url_plus(url).unwrap_or_else(|_| format!("Failed to parse \"{}\" as url", url))
 }
 
 fn encode_url(url: &str) -> String {
-    urlq::encode_url(url).unwrap_or(format!("Failed to parse \"{}\" as url", url))
+    urlq::encode_url(url).unwrap_or_else(|_| format!("Failed to parse \"{}\" as url", url))
 }
 
 trait Handler {

@@ -68,6 +68,6 @@ impl AllCharactersExceptSpaceEncodeSet {
 
 impl EncodeSet for AllCharactersExceptSpaceEncodeSet {
     fn contains(&self, byte: u8) -> bool {
-        byte != ' ' as u8
+        byte != b' '
     }
 }
