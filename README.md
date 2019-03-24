@@ -23,7 +23,7 @@ It can also decode encoded strings:
 urlq -d "my%20encoded%20string"
 ```
 
-Handling of spaces as plus is also available in the relevant parts of the url.
+Handling of spaces as plus (and vice versa) is also available in the relevant parts of the url.
 
 ## License
 
