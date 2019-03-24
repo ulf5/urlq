@@ -10,11 +10,11 @@ cat a_list_of_strings.txt | urlq | awk '{print "http://example.com/search?q="$0}
 
 ```
 
-Sometimes you might have "urls" that work when entered into a browser, but you can't curl/wget them.
+Sometimes you might have "urls" that work when entered into a browser, but you can't curl them.
 Maybe they contain spaces or other characters which the browser handles.
 
 ```
-wget $(urlq -u "http://example.com/this is an example/")
+curl $(urlq -u "http://example.com/this is an example/")
 ```
 
 It can also decode encoded strings:
