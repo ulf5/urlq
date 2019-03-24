@@ -1,6 +1,6 @@
 # urlq
 
-A command line tool for percent encoding strings as different parts of an url.
+A command line tool for percent decoding or encoding strings as different parts of an url.
 
 ## Examples of use
 
@@ -16,6 +16,14 @@ Maybe they contain spaces or other characters which the browser handles.
 ```
 wget $(urlq -u "http://example.com/this is an example/")
 ```
+
+It can also decode encoded strings:
+
+```
+urlq -d "my%20encoded%20string"
+```
+
+Handling of spaces as plus is also available in the relevant parts of the url.
 
 ## License
 
