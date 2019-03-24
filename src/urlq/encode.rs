@@ -75,7 +75,7 @@ pub fn encode_all_reserved(string: &str) -> String {
 }
 
 pub fn encode_all_reserved_plus(string: &str) -> String {
-    encode(string, ALL_RESERVED_PLUS_ENCODE_SET)
+    encode(string, ALL_RESERVED_PLUS_ENCODE_SET).replace(' ', "+")
 }
 
 pub fn encode_all(string: &str) -> String {
@@ -96,8 +96,8 @@ fn encode(string: &str, encode_set: impl EncodeSet) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{encode_query, encode_query_plus, encode_url, encode_url_plus, encode_all};
-    use crate::encode_all_reserved;
+    use crate::{encode_query, encode_query_plus, encode_url, encode_url_plus, encode_all,
+                encode_all_plus, encode_all_reserved, encode_all_reserved_plus};
 
     #[test]
     fn test_encode_query_plus() {
@@ -122,6 +122,7 @@ mod tests {
         assert_eq!(encode_url("http://www.example.com/~/abc def%").unwrap(), "http://www.example.com/~/abc%20def%");
         assert_eq!(encode_url("http://www.example.com/~/abc def%/a?foo bar=1#anchor 1").unwrap(), "http://www.example.com/~/abc%20def%/a?foo%20bar=1#anchor 1");
         assert!(encode_url("#20/abc def").is_err());
+        assert!(encode_url("").is_err());
     }
 
     #[test]
@@ -129,17 +130,34 @@ mod tests {
         assert_eq!(encode_url_plus("http://www.example.com/~/abc def%/a?foo bar=1").unwrap(), "http://www.example.com/~/abc%20def%/a?foo+bar=1");
         assert_eq!(encode_url_plus("http://www.example.com/~/abc def%/a?foo bar=1#anchor 1").unwrap(), "http://www.example.com/~/abc%20def%/a?foo+bar=1#anchor 1");
         assert!(encode_url_plus("#20/abc def").is_err());
+        assert!(encode_url_plus("").is_err());
     }
 
     #[test]
     fn test_encode_all_reserved() {
         assert_eq!(encode_all_reserved("?20/abc def"), "%3F20%2Fabc%20def");
         assert_eq!(encode_all_reserved(":/?#[]@!$&,'`()*+,;= %"), "%3A%2F%3F%23%5B%5D%40%21%24%26%2C%27%60%28%29%2A%2B%2C%3B%3D%20%25");
+        assert_eq!(encode_all_reserved(""), "");
+    }
+
+    #[test]
+    fn test_encode_all_reserved_plus() {
+        assert_eq!(encode_all_reserved_plus("?20/abc def"), "%3F20%2Fabc+def");
+        assert_eq!(encode_all_reserved_plus(":/?#[]@!$&,'`()*+,;= %"), "%3A%2F%3F%23%5B%5D%40%21%24%26%2C%27%60%28%29%2A%2B%2C%3B%3D+%25");
+        assert_eq!(encode_all_reserved_plus(""), "");
     }
 
     #[test]
     fn test_encode_all() {
         assert_eq!(encode_all("?20/abc def"), "%3F%32%30%2F%61%62%63%20%64%65%66");
         assert_eq!(encode_all(":/?#[]@!$&,'`()*+,;= %"), "%3A%2F%3F%23%5B%5D%40%21%24%26%2C%27%60%28%29%2A%2B%2C%3B%3D%20%25");
+        assert_eq!(encode_all(""), "");
+    }
+
+    #[test]
+    fn test_encode_all_plus() {
+        assert_eq!(encode_all_plus("?20/abc def"), "%3F%32%30%2F%61%62%63+%64%65%66");
+        assert_eq!(encode_all_plus(":/?#[]@!$&,'`()*+,;= %"), "%3A%2F%3F%23%5B%5D%40%21%24%26%2C%27%60%28%29%2A%2B%2C%3B%3D+%25");
+        assert_eq!(encode_all_plus(""), "");
     }
 }
