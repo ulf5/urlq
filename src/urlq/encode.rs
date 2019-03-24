@@ -96,8 +96,23 @@ fn encode(string: &str, encode_set: impl EncodeSet) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::{encode_query, encode_query_plus, encode_url, encode_url_plus, encode_all,
-                encode_all_plus, encode_all_reserved, encode_all_reserved_plus};
+    use crate::{encode_query, encode_query_plus, encode_url, encode_url_plus, encode_all, encode_all_plus, encode_all_reserved, encode_all_reserved_plus, encode_path, encode_path_segment, encode_userinfo, encode_fragment};
+
+    #[test]
+    fn test_encode_url() {
+        assert_eq!(encode_url("http://www.example.com/~/abc def%").unwrap(), "http://www.example.com/~/abc%20def%");
+        assert_eq!(encode_url("http://www.example.com/~/abc def%/a?foo bar=1#anchor 1").unwrap(), "http://www.example.com/~/abc%20def%/a?foo%20bar=1#anchor 1");
+        assert!(encode_url("#20/abc def").is_err());
+        assert!(encode_url("").is_err());
+    }
+
+    #[test]
+    fn test_encode_url_plus() {
+        assert_eq!(encode_url_plus("http://www.example.com/~/abc def%/a?foo bar=1").unwrap(), "http://www.example.com/~/abc%20def%/a?foo+bar=1");
+        assert_eq!(encode_url_plus("http://www.example.com/~/abc def%/a?foo bar=1#anchor 1").unwrap(), "http://www.example.com/~/abc%20def%/a?foo+bar=1#anchor 1");
+        assert!(encode_url_plus("#20/abc def").is_err());
+        assert!(encode_url_plus("").is_err());
+    }
 
     #[test]
     fn test_encode_query_plus() {
@@ -118,19 +133,39 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_url() {
-        assert_eq!(encode_url("http://www.example.com/~/abc def%").unwrap(), "http://www.example.com/~/abc%20def%");
-        assert_eq!(encode_url("http://www.example.com/~/abc def%/a?foo bar=1#anchor 1").unwrap(), "http://www.example.com/~/abc%20def%/a?foo%20bar=1#anchor 1");
-        assert!(encode_url("#20/abc def").is_err());
-        assert!(encode_url("").is_err());
+    fn test_encode_path() {
+        assert_eq!(encode_path("~/abc def"), "~/abc%20def");
+        assert_eq!(encode_path("#20/abc def"), "%2320/abc%20def");
+        assert_eq!(encode_path("?20/abc def"), "%3F20/abc%20def");
+        assert_eq!(encode_path(" + "), "%20+%20");
+        assert_eq!(encode_path(""), "");
     }
 
     #[test]
-    fn test_encode_url_plus() {
-        assert_eq!(encode_url_plus("http://www.example.com/~/abc def%/a?foo bar=1").unwrap(), "http://www.example.com/~/abc%20def%/a?foo+bar=1");
-        assert_eq!(encode_url_plus("http://www.example.com/~/abc def%/a?foo bar=1#anchor 1").unwrap(), "http://www.example.com/~/abc%20def%/a?foo+bar=1#anchor 1");
-        assert!(encode_url_plus("#20/abc def").is_err());
-        assert!(encode_url_plus("").is_err());
+    fn test_encode_path_segment() {
+        assert_eq!(encode_path_segment("~/abc def"), "~%2Fabc%20def");
+        assert_eq!(encode_path_segment("#20/abc def"), "%2320%2Fabc%20def");
+        assert_eq!(encode_path_segment("?20/abc def"), "%3F20%2Fabc%20def");
+        assert_eq!(encode_path_segment(" + "), "%20+%20");
+        assert_eq!(encode_path_segment(""), "");
+    }
+
+    #[test]
+    fn test_encode_userinfo() {
+        assert_eq!(encode_userinfo("~/abc def"), "~%2Fabc%20def");
+        assert_eq!(encode_userinfo("#20/abc def"), "%2320%2Fabc%20def");
+        assert_eq!(encode_userinfo("?20/abc@def"), "%3F20%2Fabc%40def");
+        assert_eq!(encode_userinfo(" + "), "%20+%20");
+        assert_eq!(encode_userinfo(""), "");
+    }
+
+    #[test]
+    fn test_encode_fragment() {
+        assert_eq!(encode_fragment("~/abc def"), "~/abc def");
+        assert_eq!(encode_fragment("#20/abc def"), "#20/abc def");
+        assert_eq!(encode_fragment("?20/abc def"), "?20/abc def");
+        assert_eq!(encode_fragment(" + "), " + ");
+        assert_eq!(encode_fragment(""), "");
     }
 
     #[test]
