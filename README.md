@@ -1,3 +1,22 @@
+# urlq
+
+A command line tool for percent encoding strings as different parts of an url.
+
+## Examples of use
+
+One example can be to append strings to an url and call the urls with curl:
+```
+cat a_list_of_strings.txt | urlq | awk '{print "http://example.com/search?q="$0}' | xargs -n 1 curl -O
+
+```
+
+Sometimes you might have "urls" that work when entered into a browser, but you can't curl/wget them.
+Maybe they contain spaces or other characters which the browser handles.
+
+```
+wget $(urlq -u "http://example.com/this is an example/")
+```
+
 ## License
 
 Licensed under either of
